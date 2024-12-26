@@ -1,5 +1,6 @@
-require('dotenv').config();
+const path = require('node:path');
 
+require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
@@ -7,6 +8,8 @@ const mongoose = require('mongoose');
 const feedRoutes = require('./routes/feed');
 
 const app = express();
+
+app.use('/images', express.static(path.join(__dirname, 'images')));
 
 app.use(bodyParser.json());
 
