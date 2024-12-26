@@ -11,6 +11,9 @@ router.get('/posts', feedController.getPosts);
 // POST /feed/post
 router.post('/post', postValidationMiddlewares(), feedController.createPost);
 
+// GET /feed/post/:postId
+router.get('/post/:postId', feedController.getPostDetails);
+
 module.exports = router;
 
 function postValidationMiddlewares() {
