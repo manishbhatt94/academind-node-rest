@@ -7,7 +7,7 @@ import Input from "../../components/Form/Input/Input";
 import Paginator from "../../components/Paginator/Paginator";
 import Loader from "../../components/Loader/Loader";
 import ErrorHandler from "../../components/ErrorHandler/ErrorHandler";
-import { ENDPOINT } from "../../util/api-endpoints";
+import { ENDPOINT } from "@/util/api-endpoints";
 import "./Feed.css";
 
 class Feed extends Component {
