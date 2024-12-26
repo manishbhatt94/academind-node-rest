@@ -5,6 +5,11 @@ exports.getPosts = (req, res, next) => {
         _id: '1',
         title: 'First Post',
         content: 'This is the first post!',
+        imageUrl: 'images/1734945552293-134053327-cats-02.jpg',
+        createdAt: new Date(),
+        creator: {
+          name: 'Kendrick Lamar',
+        },
       },
     ],
   });

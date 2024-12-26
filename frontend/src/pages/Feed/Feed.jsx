@@ -1,4 +1,4 @@
-import React, { Component, Fragment } from "react";
+import { Component, Fragment } from "react";
 
 import Post from "../../components/Feed/Post/Post";
 import Button from "../../components/Button/Button";
@@ -7,6 +7,7 @@ import Input from "../../components/Form/Input/Input";
 import Paginator from "../../components/Paginator/Paginator";
 import Loader from "../../components/Loader/Loader";
 import ErrorHandler from "../../components/ErrorHandler/ErrorHandler";
+import { ENDPOINT } from "../../util/api-endpoints";
 import "./Feed.css";
 
 class Feed extends Component {
@@ -50,7 +51,7 @@ class Feed extends Component {
       page--;
       this.setState({ postPage: page });
     }
-    fetch("URL")
+    fetch(ENDPOINT.FEED.GET_POSTS.url())
       .then((res) => {
         if (res.status !== 200) {
           throw new Error("Failed to fetch posts.");
@@ -106,7 +107,7 @@ class Feed extends Component {
       editLoading: true,
     });
     // Set up data (with image!)
-    let url = "URL";
+    let url = ENDPOINT.FEED.CREATE_POST.url();
     if (this.state.editPost) {
       url = "URL";
     }
