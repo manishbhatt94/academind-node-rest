@@ -22,6 +22,12 @@ app.use(function setCorsHeaders(req, res, next) {
 
 app.use('/feed', feedRoutes);
 
+app.use((err, req, res, next) => {
+  console.error(err);
+  const { statusCode = 500, message } = err;
+  res.status(statusCode).json({ message });
+});
+
 function databaseConnect() {
   return mongoose.connect(process.env.MONGO_CONNECTION_URI).then(() => {
     console.log('Connected to MongoDB');
