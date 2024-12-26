@@ -2,6 +2,7 @@ require('dotenv').config();
 
 const express = require('express');
 const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
 
 const feedRoutes = require('./routes/feed');
 
@@ -18,6 +19,22 @@ app.use(function setCorsHeaders(req, res, next) {
 
 app.use('/feed', feedRoutes);
 
-app.listen(+process.env.SERVER_PORT, () =>
-  console.log(`Server listening on port ${process.env.SERVER_PORT}`)
-);
+function databaseConnect() {
+  return mongoose.connect(process.env.MONGO_CONNECTION_URI).then(() => {
+    console.log('Connected to MongoDB');
+  });
+}
+
+function setup() {
+  return databaseConnect();
+}
+
+setup()
+  .then(() => {
+    app.listen(+process.env.SERVER_PORT, () =>
+      console.log(`Server listening on port ${process.env.SERVER_PORT}`)
+    );
+  })
+  .catch((err) => {
+    console.error('setup error', err);
+  });
