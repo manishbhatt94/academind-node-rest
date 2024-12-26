@@ -8,6 +8,7 @@ import Paginator from "../../components/Paginator/Paginator";
 import Loader from "../../components/Loader/Loader";
 import ErrorHandler from "../../components/ErrorHandler/ErrorHandler";
 import { ENDPOINT } from "@/util/api-endpoints";
+import { makeRequest } from "@/util/api-request";
 import "./Feed.css";
 
 class Feed extends Component {
@@ -51,7 +52,7 @@ class Feed extends Component {
       page--;
       this.setState({ postPage: page });
     }
-    fetch(ENDPOINT.FEED.GET_POSTS.url())
+    makeRequest(ENDPOINT.FEED.GET_POSTS)
       .then((res) => {
         if (res.status !== 200) {
           throw new Error("Failed to fetch posts.");
@@ -107,12 +108,18 @@ class Feed extends Component {
       editLoading: true,
     });
     // Set up data (with image!)
-    let url = ENDPOINT.FEED.CREATE_POST.url();
+    let endpoint = ENDPOINT.FEED.CREATE_POST;
     if (this.state.editPost) {
-      url = "URL";
+      endpoint = ENDPOINT.FEED.EDIT_POST;
     }
 
-    fetch(url)
+    makeRequest(endpoint, {
+      params: this.state.editPost ? [this.state.editPost._id] : [],
+      body: {
+        title: postData.title,
+        content: postData.content,
+      },
+    })
       .then((res) => {
         if (res.status !== 200 && res.status !== 201) {
           throw new Error("Creating or editing a post failed!");

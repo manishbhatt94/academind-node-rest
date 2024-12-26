@@ -10,5 +10,9 @@ export const ENDPOINT = {
       url: () => `${baseUrl}/feed/post`,
       method: "POST",
     },
+    EDIT_POST: {
+      url: (postId) => `${baseUrl}/feed/posts/${postId}`,
+      method: "PUT",
+    },
   },
 };
