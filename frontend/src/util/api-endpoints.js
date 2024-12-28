@@ -3,6 +3,12 @@ export const apiBaseUrl = import.meta.env.VITE_SERVER_ORIGIN;
 export const imageBaseUrl = apiBaseUrl;
 
 export const ENDPOINT = {
+  AUTH: {
+    SIGNUP: {
+      url: () => `${apiBaseUrl}/auth/signup`,
+      method: "PUT",
+    },
+  },
   FEED: {
     GET_POSTS: {
       url: () => `${apiBaseUrl}/feed/posts`,

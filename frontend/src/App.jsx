@@ -11,13 +11,15 @@ import FeedPage from "./pages/Feed/Feed";
 import SinglePostPage from "./pages/Feed/SinglePost/SinglePost";
 import LoginPage from "./pages/Auth/Login";
 import SignupPage from "./pages/Auth/Signup";
+import { ENDPOINT } from "@/util/api-endpoints";
+import { makeRequest } from "@/util/api-request";
 import "./App.css";
 
 class App extends Component {
   state = {
     showBackdrop: false,
     showMobileNav: false,
-    isAuth: true,
+    isAuth: false,
     token: null,
     userId: null,
     authLoading: false,
@@ -100,7 +102,16 @@ class App extends Component {
   signupHandler = (event, authData) => {
     event.preventDefault();
     this.setState({ authLoading: true });
-    fetch("URL")
+    const {
+      signupForm: { email, password, name },
+    } = authData;
+    makeRequest(ENDPOINT.AUTH.SIGNUP, {
+      body: {
+        email: email.value,
+        password: password.value,
+        name: name.value,
+      },
+    })
       .then((res) => {
         if (res.status === 422) {
           throw new Error(

@@ -5,6 +5,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 
+const authRoutes = require('./routes/auth');
 const feedRoutes = require('./routes/feed');
 
 const app = express();
@@ -20,12 +21,13 @@ app.use(function setCorsHeaders(req, res, next) {
   next();
 });
 
+app.use('/auth', authRoutes);
 app.use('/feed', feedRoutes);
 
 app.use((err, req, res, next) => {
   console.error(err);
-  const { statusCode = 500, message } = err;
-  res.status(statusCode).json({ message });
+  const { statusCode = 500, message, data } = err;
+  res.status(statusCode).json({ message, data });
 });
 
 function databaseConnect() {
