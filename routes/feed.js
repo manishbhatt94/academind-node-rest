@@ -10,6 +10,7 @@ const router = express.Router();
 router.get('/posts', feedController.getPosts);
 
 const upload = prepareUploadMiddleware();
+
 // POST /feed/post
 router.post(
   '/post',
@@ -20,6 +21,14 @@ router.post(
 
 // GET /feed/post/:postId
 router.get('/post/:postId', feedController.getPostDetails);
+
+// PUT /feed/post/:postId
+router.put(
+  '/post/:postId',
+  upload.single('image'),
+  postValidationMiddlewares(),
+  feedController.updatePost
+);
 
 module.exports = router;
 
