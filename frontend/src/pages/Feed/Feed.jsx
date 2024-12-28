@@ -52,7 +52,9 @@ class Feed extends Component {
       page--;
       this.setState({ postPage: page });
     }
-    makeRequest(ENDPOINT.FEED.GET_POSTS)
+    makeRequest(ENDPOINT.FEED.GET_POSTS, {
+      query: { page },
+    })
       .then((res) => {
         if (res.status !== 200) {
           throw new Error("Failed to fetch posts.");

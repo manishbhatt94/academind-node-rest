@@ -5,9 +5,16 @@ const { validationResult } = require('express-validator');
 const Post = require('../models/post');
 
 exports.getPosts = (req, res, next) => {
+  const { pagination } = res.locals;
   Post.find()
+    .skip(pagination.skip)
+    .limit(pagination.limit)
     .then((posts) => {
-      res.status(200).json({ message: 'Fetched posts successfully.', posts });
+      res.status(200).json({
+        message: 'Fetched posts successfully.',
+        totalItems: pagination.totalItems,
+        posts,
+      });
     })
     .catch(next);
 };

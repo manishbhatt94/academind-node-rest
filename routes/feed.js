@@ -2,12 +2,14 @@ const express = require('express');
 const { body } = require('express-validator');
 const multer = require('multer');
 
+const getPaginationHelper = require('../middlewares/pagination');
 const feedController = require('../controllers/feed');
+const Post = require('../models/post');
 
 const router = express.Router();
 
 // GET /feed/posts
-router.get('/posts', feedController.getPosts);
+router.get('/posts', getPaginationHelper(Post), feedController.getPosts);
 
 const upload = prepareUploadMiddleware();
 
