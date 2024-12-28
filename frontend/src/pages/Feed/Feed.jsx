@@ -107,7 +107,10 @@ class Feed extends Component {
     this.setState({
       editLoading: true,
     });
-    // Set up data (with image!)
+    const formData = new FormData();
+    formData.append("title", postData.title);
+    formData.append("content", postData.content);
+    formData.append("image", postData.image);
     let endpoint = ENDPOINT.FEED.CREATE_POST;
     if (this.state.editPost) {
       endpoint = ENDPOINT.FEED.EDIT_POST;
@@ -115,10 +118,7 @@ class Feed extends Component {
 
     makeRequest(endpoint, {
       params: this.state.editPost ? [this.state.editPost._id] : [],
-      body: {
-        title: postData.title,
-        content: postData.content,
-      },
+      formData,
     })
       .then((res) => {
         if (res.status !== 200 && res.status !== 201) {

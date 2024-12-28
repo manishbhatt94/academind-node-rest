@@ -16,11 +16,16 @@ exports.createPost = (req, res, next) => {
     error.statusCode = 422;
     throw error;
   }
+  if (!req.file) {
+    const error = new Error('No image provided or file upload is invalid.');
+    error.statusCode = 422;
+    throw error;
+  }
   const { title, content } = req.body;
   const post = new Post({
     title,
     content,
-    imageUrl: 'images/1734945552293-134053327-cats-02.jpg',
+    imageUrl: req.file.path,
     creator: { name: 'Kendrick Lamar' },
   });
   post
