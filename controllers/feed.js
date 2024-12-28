@@ -89,6 +89,21 @@ exports.getPostDetails = (req, res, next) => {
     .catch(next);
 };
 
+exports.deletePost = (req, res, next) => {
+  const { postId } = req.params;
+  Post.findById(postId)
+    .then((post) => {
+      ensurePostExistance(post);
+      // TODO: check if logged in user is the creator of the post
+      clearImage(post.imageUrl);
+      return post.deleteOne();
+    })
+    .then(() => {
+      res.status(200).json({ message: 'Deleted post.' });
+    })
+    .catch(next);
+};
+
 function ensurePostExistance(post) {
   if (!post) {
     const error = new Error('Could not find post.');

@@ -172,7 +172,9 @@ class Feed extends Component {
 
   deletePostHandler = (postId) => {
     this.setState({ postsLoading: true });
-    fetch("URL")
+    makeRequest(ENDPOINT.FEED.DELETE_POST, {
+      params: [postId],
+    })
       .then((res) => {
         if (res.status !== 200 && res.status !== 201) {
           throw new Error("Deleting a post failed!");

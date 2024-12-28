@@ -20,5 +20,9 @@ export const ENDPOINT = {
       url: (postId) => `${apiBaseUrl}/feed/post/${postId}`,
       method: "PUT",
     },
+    DELETE_POST: {
+      url: (postId) => `${apiBaseUrl}/feed/post/${postId}`,
+      method: "DELETE",
+    },
   },
 };
