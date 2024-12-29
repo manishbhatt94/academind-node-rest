@@ -8,6 +8,10 @@ export const ENDPOINT = {
       url: () => `${apiBaseUrl}/auth/signup`,
       method: "PUT",
     },
+    LOGIN: {
+      url: () => `${apiBaseUrl}/auth/login`,
+      method: "POST",
+    },
   },
   FEED: {
     GET_POSTS: {
