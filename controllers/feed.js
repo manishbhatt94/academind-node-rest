@@ -3,6 +3,7 @@ const path = require('node:path');
 
 const { validationResult } = require('express-validator');
 const Post = require('../models/post');
+const User = require('../models/user');
 
 exports.getPosts = (req, res, next) => {
   const { pagination } = res.locals;
@@ -32,19 +33,34 @@ exports.createPost = (req, res, next) => {
     throw error;
   }
   const { title, content } = req.body;
+  let savedPost;
+  let postCreator;
+
   const post = new Post({
     title,
     content,
     imageUrl: req.file.path,
-    creator: { name: 'Kendrick Lamar' },
+    creator: req.userId,
   });
   post
     .save()
     .then((result) => {
-      console.log(result);
+      savedPost = result;
+      return User.findById(req.userId);
+    })
+    .then((user) => {
+      postCreator = user;
+      user.posts.push(savedPost);
+      return user.save();
+    })
+    .then(() => {
       res.status(201).json({
         message: 'Post created successfully!',
-        post: result,
+        post: savedPost,
+        creator: {
+          _id: postCreator._id.toString(),
+          name: postCreator.name,
+        },
       });
     })
     .catch(next);
