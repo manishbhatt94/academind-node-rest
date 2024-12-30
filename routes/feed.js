@@ -38,6 +38,17 @@ router.put(
 // DELETE /feed/post/:postId
 router.delete('/post/:postId', isAuth, feedController.deletePost);
 
+// GET /feed/status
+router.get('/status', isAuth, feedController.getStatus);
+
+// PUT /feed/status
+router.put(
+  '/status',
+  body('status').trim().isLength({ min: 5, max: 255 }),
+  isAuth,
+  feedController.updateStatus
+);
+
 module.exports = router;
 
 function postValidationMiddlewares() {

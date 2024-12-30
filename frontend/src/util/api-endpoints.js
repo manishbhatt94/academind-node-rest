@@ -34,5 +34,13 @@ export const ENDPOINT = {
       url: (postId) => `${apiBaseUrl}/feed/post/${postId}`,
       method: "DELETE",
     },
+    GET_STATUS: {
+      url: () => `${apiBaseUrl}/feed/status`,
+      method: "GET",
+    },
+    UPDATE_STATUS: {
+      url: () => `${apiBaseUrl}/feed/status`,
+      method: "PUT",
+    },
   },
 };

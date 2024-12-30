@@ -138,6 +138,27 @@ exports.deletePost = (req, res, next) => {
     .catch(next);
 };
 
+exports.getStatus = (req, res, next) => {
+  User.findById(req.userId)
+    .then((user) => {
+      res.status(200).json({ message: 'Status fetched.', status: user.status });
+    })
+    .catch(next);
+};
+
+exports.updateStatus = (req, res, next) => {
+  const { status } = req.body;
+  User.findById(req.userId)
+    .then((user) => {
+      user.status = status;
+      return user.save();
+    })
+    .then(() => {
+      res.status(201).json({ message: 'Status updated.' });
+    })
+    .catch(next);
+};
+
 function ensurePostExistance(post) {
   if (!post) {
     const error = new Error('Could not find post.');
