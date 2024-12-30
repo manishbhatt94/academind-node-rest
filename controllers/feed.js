@@ -91,20 +91,13 @@ exports.updatePost = (req, res, next) => {
   Post.findById(postId)
     .then((post) => {
       ensurePostExistance(post);
-      // check if logged in user is the creator of the post being edited,
-      // since a post can only be updated by its creator
-      if (post._id.toString() !== req.userId) {
-        const error = new Error('Not authorized');
-        error.statusCode = 403;
-        throw error;
-      }
+      ensureAuthorizionForActionOnPost(post, req);
       if (imageUrl !== post.imageUrl) {
         clearImage(post.imageUrl);
       }
       post.title = title;
       post.content = content;
       post.imageUrl = imageUrl;
-      post.creator = { name: 'Kendrick Lamar' };
       return post.save();
     })
     .then((result) => {
@@ -128,9 +121,16 @@ exports.deletePost = (req, res, next) => {
   Post.findById(postId)
     .then((post) => {
       ensurePostExistance(post);
-      // TODO: check if logged in user is the creator of the post
+      ensureAuthorizionForActionOnPost(post, req);
       clearImage(post.imageUrl);
       return post.deleteOne();
+    })
+    .then(() => {
+      return User.findById(req.userId);
+    })
+    .then((user) => {
+      user.posts.pull(postId);
+      return user.save();
     })
     .then(() => {
       res.status(200).json({ message: 'Deleted post.' });
@@ -142,6 +142,14 @@ function ensurePostExistance(post) {
   if (!post) {
     const error = new Error('Could not find post.');
     error.statusCode = 404;
+    throw error;
+  }
+}
+
+function ensureAuthorizionForActionOnPost(post, req) {
+  if (post.creator.toString() !== req.userId) {
+    const error = new Error('Not authorized');
+    error.statusCode = 403;
     throw error;
   }
 }
