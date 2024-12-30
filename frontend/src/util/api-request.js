@@ -9,6 +9,10 @@ export const makeRequest = function makeRequest(endpoint, options = {}) {
     params: options.params || [],
     query: options.query || {},
   };
+  const token = localStorage.getItem("token");
+  if (token) {
+    opts.headers.Authorization = `Bearer ${token}`;
+  }
   if (opts.body) {
     opts.body = JSON.stringify(opts.body);
   }
