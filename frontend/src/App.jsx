@@ -77,20 +77,13 @@ class App extends Component {
       })
       .then((resData) => {
         console.log(resData);
+        this.postLogin(resData);
         this.setState({
           isAuth: true,
           token: resData.token,
           authLoading: false,
           userId: resData.userId,
         });
-        localStorage.setItem("token", resData.token);
-        localStorage.setItem("userId", resData.userId);
-        const remainingMilliseconds = 60 * 60 * 1000;
-        const expiryDate = new Date(
-          new Date().getTime() + remainingMilliseconds,
-        );
-        localStorage.setItem("expiryDate", expiryDate.toISOString());
-        this.setAutoLogout(remainingMilliseconds);
       })
       .catch((err) => {
         console.log(err);
@@ -100,6 +93,15 @@ class App extends Component {
           error: err,
         });
       });
+  };
+
+  postLogin = (loginResponse) => {
+    localStorage.setItem("token", loginResponse.token);
+    localStorage.setItem("userId", loginResponse.userId);
+    const remainingMilliseconds = 60 * 60 * 1000;
+    const expiryDate = new Date(new Date().getTime() + remainingMilliseconds);
+    localStorage.setItem("expiryDate", expiryDate.toISOString());
+    this.setAutoLogout(remainingMilliseconds);
   };
 
   signupHandler = (event, authData) => {
