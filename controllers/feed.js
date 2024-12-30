@@ -10,6 +10,10 @@ exports.getPosts = (req, res, next) => {
   Post.find()
     .skip(pagination.skip)
     .limit(pagination.limit)
+    .populate({
+      path: 'creator',
+      select: 'name -_id',
+    })
     .then((posts) => {
       res.status(200).json({
         message: 'Fetched posts successfully.',
@@ -87,6 +91,13 @@ exports.updatePost = (req, res, next) => {
   Post.findById(postId)
     .then((post) => {
       ensurePostExistance(post);
+      // check if logged in user is the creator of the post being edited,
+      // since a post can only be updated by its creator
+      if (post._id.toString() !== req.userId) {
+        const error = new Error('Not authorized');
+        error.statusCode = 403;
+        throw error;
+      }
       if (imageUrl !== post.imageUrl) {
         clearImage(post.imageUrl);
       }
