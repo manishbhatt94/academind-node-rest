@@ -92,27 +92,18 @@ exports.getPostDetails = asyncHandler(async function getPostDetails(req, res, ne
   res.status(200).json({ message: 'Post fetched.', post });
 });
 
-exports.deletePost = (req, res, next) => {
+exports.deletePost = asyncHandler(async function deletePost(req, res, next) {
   const { postId } = req.params;
-  Post.findById(postId)
-    .then((post) => {
-      ensurePostExistance(post);
-      ensureAuthorizionForActionOnPost(post, req);
-      clearImage(post.imageUrl);
-      return post.deleteOne();
-    })
-    .then(() => {
-      return User.findById(req.userId);
-    })
-    .then((user) => {
-      user.posts.pull(postId);
-      return user.save();
-    })
-    .then(() => {
-      res.status(200).json({ message: 'Deleted post.' });
-    })
-    .catch(next);
-};
+  const post = await Post.findById(postId);
+  ensurePostExistance(post);
+  ensureAuthorizionForActionOnPost(post, req);
+  clearImage(post.imageUrl);
+  await post.deleteOne();
+  const user = await User.findById(req.userId);
+  user.posts.pull(postId);
+  await user.save();
+  res.status(200).json({ message: 'Deleted post.' });
+});
 
 exports.getStatus = asyncHandler(async function getStatus(req, res, next) {
   const user = await User.findById(req.userId);
