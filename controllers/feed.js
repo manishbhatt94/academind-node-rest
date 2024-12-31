@@ -20,7 +20,7 @@ exports.getPosts = asyncHandler(async function getPosts(req, res, next) {
   });
 });
 
-exports.createPost = (req, res, next) => {
+exports.createPost = asyncHandler(async function createPost(req, res, next) {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     const error = new Error('Validation failed, entered data is incorrect.');
@@ -33,8 +33,6 @@ exports.createPost = (req, res, next) => {
     throw error;
   }
   const { title, content } = req.body;
-  let savedPost;
-  let postCreator;
 
   const post = new Post({
     title,
@@ -42,29 +40,19 @@ exports.createPost = (req, res, next) => {
     imageUrl: req.file.path,
     creator: req.userId,
   });
-  post
-    .save()
-    .then((result) => {
-      savedPost = result;
-      return User.findById(req.userId);
-    })
-    .then((user) => {
-      postCreator = user;
-      user.posts.push(savedPost);
-      return user.save();
-    })
-    .then(() => {
-      res.status(201).json({
-        message: 'Post created successfully!',
-        post: savedPost,
-        creator: {
-          _id: postCreator._id.toString(),
-          name: postCreator.name,
-        },
-      });
-    })
-    .catch(next);
-};
+  const savedPost = await post.save();
+  const postCreator = await User.findById(req.userId);
+  postCreator.posts.push(savedPost);
+  await postCreator.save();
+  res.status(201).json({
+    message: 'Post created successfully!',
+    post: savedPost,
+    creator: {
+      _id: postCreator._id.toString(),
+      name: postCreator.name,
+    },
+  });
+});
 
 exports.updatePost = (req, res, next) => {
   const errors = validationResult(req);
