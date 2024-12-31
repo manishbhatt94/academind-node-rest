@@ -54,7 +54,7 @@ exports.createPost = asyncHandler(async function createPost(req, res, next) {
   });
 });
 
-exports.updatePost = (req, res, next) => {
+exports.updatePost = asyncHandler(async function updatePost(req, res, next) {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     const error = new Error('Validation failed, entered data is incorrect.');
@@ -72,23 +72,18 @@ exports.updatePost = (req, res, next) => {
     error.statusCode = 422;
     throw error;
   }
-  Post.findById(postId)
-    .then((post) => {
-      ensurePostExistance(post);
-      ensureAuthorizionForActionOnPost(post, req);
-      if (imageUrl !== post.imageUrl) {
-        clearImage(post.imageUrl);
-      }
-      post.title = title;
-      post.content = content;
-      post.imageUrl = imageUrl;
-      return post.save();
-    })
-    .then((result) => {
-      res.status(200).json({ message: 'Post updated!', post: result });
-    })
-    .catch(next);
-};
+  const post = await Post.findById(postId);
+  ensurePostExistance(post);
+  ensureAuthorizionForActionOnPost(post, req);
+  if (imageUrl !== post.imageUrl) {
+    clearImage(post.imageUrl);
+  }
+  post.title = title;
+  post.content = content;
+  post.imageUrl = imageUrl;
+  const updatedPost = await post.save();
+  res.status(200).json({ message: 'Post updated!', post: updatedPost });
+});
 
 exports.getPostDetails = asyncHandler(async function getPostDetails(req, res, next) {
   const { postId } = req.params;
