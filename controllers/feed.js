@@ -2,27 +2,23 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const { validationResult } = require('express-validator');
+
+const { asyncHandler } = require('../middlewares/async-handler');
 const Post = require('../models/post');
 const User = require('../models/user');
 
-exports.getPosts = (req, res, next) => {
+exports.getPosts = asyncHandler(async function getPosts(req, res, next) {
   const { pagination } = res.locals;
-  Post.find()
-    .skip(pagination.skip)
-    .limit(pagination.limit)
-    .populate({
-      path: 'creator',
-      select: 'name -_id',
-    })
-    .then((posts) => {
-      res.status(200).json({
-        message: 'Fetched posts successfully.',
-        totalItems: pagination.totalItems,
-        posts,
-      });
-    })
-    .catch(next);
-};
+  const posts = await Post.find().skip(pagination.skip).limit(pagination.limit).populate({
+    path: 'creator',
+    select: 'name -_id',
+  });
+  res.status(200).json({
+    message: 'Fetched posts successfully.',
+    totalItems: pagination.totalItems,
+    posts,
+  });
+});
 
 exports.createPost = (req, res, next) => {
   const errors = validationResult(req);
@@ -106,15 +102,12 @@ exports.updatePost = (req, res, next) => {
     .catch(next);
 };
 
-exports.getPostDetails = (req, res, next) => {
+exports.getPostDetails = asyncHandler(async function getPostDetails(req, res, next) {
   const { postId } = req.params;
-  Post.findById(postId)
-    .then((post) => {
-      ensurePostExistance(post);
-      res.status(200).json({ message: 'Post fetched.', post });
-    })
-    .catch(next);
-};
+  const post = await Post.findById(postId);
+  ensurePostExistance(post);
+  res.status(200).json({ message: 'Post fetched.', post });
+});
 
 exports.deletePost = (req, res, next) => {
   const { postId } = req.params;
@@ -138,26 +131,18 @@ exports.deletePost = (req, res, next) => {
     .catch(next);
 };
 
-exports.getStatus = (req, res, next) => {
-  User.findById(req.userId)
-    .then((user) => {
-      res.status(200).json({ message: 'Status fetched.', status: user.status });
-    })
-    .catch(next);
-};
+exports.getStatus = asyncHandler(async function getStatus(req, res, next) {
+  const user = await User.findById(req.userId);
+  res.status(200).json({ message: 'Status fetched.', status: user.status });
+});
 
-exports.updateStatus = (req, res, next) => {
+exports.updateStatus = asyncHandler(async function updateStatus(req, res, next) {
   const { status } = req.body;
-  User.findById(req.userId)
-    .then((user) => {
-      user.status = status;
-      return user.save();
-    })
-    .then(() => {
-      res.status(201).json({ message: 'Status updated.' });
-    })
-    .catch(next);
-};
+  const user = await User.findById(req.userId);
+  user.status = status;
+  await user.save();
+  res.status(201).json({ message: 'Status updated.' });
+});
 
 function ensurePostExistance(post) {
   if (!post) {
