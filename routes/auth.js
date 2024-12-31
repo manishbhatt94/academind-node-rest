@@ -13,14 +13,13 @@ router.put(
       .isEmail()
       .withMessage('Please enter a valid email')
       .normalizeEmail()
-      .custom((value) => {
-        return User.findOne({ email: value }).then((existingUser) => {
-          if (existingUser) {
-            return Promise.reject(
-              'An account with this email already exists. Please pick a different email address'
-            );
-          }
-        });
+      .custom(async (value) => {
+        const existingUser = await User.findOne({ email: value });
+        if (existingUser) {
+          throw new Error(
+            'An account with this email already exists. Please pick a different email address'
+          );
+        }
       }),
     body('password').trim().isLength({ min: 5 }),
     body('name').trim().not().isEmpty(),
