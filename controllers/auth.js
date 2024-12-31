@@ -1,9 +1,8 @@
-const crypto = require('node:crypto');
-
 const bcrypt = require('bcryptjs');
 const { validationResult } = require('express-validator');
 const jwt = require('jsonwebtoken');
 
+const { asyncHandler } = require('../middlewares/async-handler');
 const User = require('../models/user');
 
 exports.signup = (req, res, next) => {
@@ -32,38 +31,33 @@ exports.signup = (req, res, next) => {
     .catch(next);
 };
 
-exports.login = (req, res, next) => {
+exports.login = asyncHandler(async function login(req, res, next) {
   const { email, password } = req.body;
-  let loadedUser;
-  User.findOne({ email })
-    .then((user) => {
-      if (!user) {
-        const error = new Error('A user with this email could not be found');
-        error.statusCode = 401;
-        throw error;
-      }
-      loadedUser = user;
-      return bcrypt.compare(password, user.password);
-    })
-    .then((doMatch) => {
-      if (!doMatch) {
-        const error = new Error('Invalid credentials');
-        error.statusCode = 401;
-        throw error;
-      }
-      const token = jwt.sign(
-        {
-          email: loadedUser.email,
-          name: loadedUser.name,
-          userId: loadedUser._id.toString(),
-        },
-        process.env.JWT_SECRET_KEY,
-        { expiresIn: '1h' }
-      );
-      res.status(200).json({
-        token,
-        userId: loadedUser._id.toString(),
-      });
-    })
-    .catch(next);
-};
+  const user = await User.findOne({ email });
+  if (!user) {
+    throw getLoginFailedError();
+  }
+  const doMatch = await bcrypt.compare(password, user.password);
+  if (!doMatch) {
+    throw getLoginFailedError();
+  }
+  const token = jwt.sign(
+    {
+      email: user.email,
+      name: user.name,
+      userId: user._id.toString(),
+    },
+    process.env.JWT_SECRET_KEY,
+    { expiresIn: '1h' }
+  );
+  res.status(200).json({
+    token,
+    userId: user._id.toString(),
+  });
+
+  function getLoginFailedError() {
+    const error = new Error('Invalid credentials');
+    error.statusCode = 401;
+    return error;
+  }
+});
