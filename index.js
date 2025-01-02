@@ -1,14 +1,19 @@
+const { createServer } = require('node:http');
 const path = require('node:path');
 
 require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
+const { Server: SocketIOServer } = require('socket.io');
 
 const authRoutes = require('./routes/auth');
 const feedRoutes = require('./routes/feed');
 
 const app = express();
+const server = createServer(app);
+
+app.set('strict routing', true);
 
 app.use('/images', express.static(path.join(__dirname, 'images')));
 
@@ -16,9 +21,23 @@ app.use(bodyParser.json());
 
 app.use(function setCorsHeaders(req, res, next) {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
   next();
+});
+
+const io = new SocketIOServer(server, {
+  addTrailingSlash: false,
+  cors: {
+    origin: process.env.FRONTEND_ORIGIN,
+  },
+});
+io.on('connection', (socket) => {
+  console.log('A client connected to Socket.io server.');
 });
 
 app.use('/auth', authRoutes);
@@ -42,7 +61,7 @@ function setup() {
 
 setup()
   .then(() => {
-    app.listen(+process.env.SERVER_PORT, () =>
+    server.listen(+process.env.SERVER_PORT, () =>
       console.log(`Server listening on port ${process.env.SERVER_PORT}`)
     );
   })

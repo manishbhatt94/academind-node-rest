@@ -1,4 +1,5 @@
 import { Component, Fragment } from "react";
+import { io } from "socket.io-client";
 
 import Post from "../../components/Feed/Post/Post";
 import Button from "../../components/Button/Button";
@@ -7,7 +8,7 @@ import Input from "../../components/Form/Input/Input";
 import Paginator from "../../components/Paginator/Paginator";
 import Loader from "../../components/Loader/Loader";
 import ErrorHandler from "../../components/ErrorHandler/ErrorHandler";
-import { ENDPOINT } from "@/util/api-endpoints";
+import { ENDPOINT, apiBaseUrl } from "@/util/api-endpoints";
 import { makeRequest } from "@/util/api-request";
 import "./Feed.css";
 
@@ -37,6 +38,9 @@ class Feed extends Component {
       .catch(this.catchError);
 
     this.loadPosts();
+    io(apiBaseUrl, {
+      addTrailingSlash: false,
+    });
   }
 
   loadPosts = (direction) => {
