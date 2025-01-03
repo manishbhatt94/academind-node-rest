@@ -6,6 +6,7 @@ const { validationResult } = require('express-validator');
 const { asyncHandler } = require('../middlewares/async-handler');
 const Post = require('../models/post');
 const User = require('../models/user');
+const socket = require('../services/socket');
 
 exports.getPosts = asyncHandler(async function getPosts(req, res, next) {
   const { pagination } = res.locals;
@@ -44,6 +45,17 @@ exports.createPost = asyncHandler(async function createPost(req, res, next) {
   const postCreator = await User.findById(req.userId);
   postCreator.posts.push(savedPost);
   await postCreator.save();
+  const socketPayload = {
+    action: 'create',
+    post: {
+      ...savedPost._doc,
+      creator: {
+        _id: req.userId,
+        name: postCreator.name,
+      },
+    },
+  };
+  socket.getIO().emit('posts', socketPayload);
   res.status(201).json({
     message: 'Post created successfully!',
     post: savedPost,

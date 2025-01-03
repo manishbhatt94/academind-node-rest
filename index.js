@@ -5,7 +5,7 @@ require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
-const { Server: SocketIOServer } = require('socket.io');
+const socket = require('./services/socket');
 
 const authRoutes = require('./routes/auth');
 const feedRoutes = require('./routes/feed');
@@ -30,12 +30,7 @@ app.use(function setCorsHeaders(req, res, next) {
   next();
 });
 
-const io = new SocketIOServer(server, {
-  addTrailingSlash: false,
-  cors: {
-    origin: process.env.FRONTEND_ORIGIN,
-  },
-});
+const io = socket.init(server);
 io.on('connection', (socket) => {
   console.log('A client connected to Socket.io server.');
 });
