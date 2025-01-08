@@ -68,10 +68,58 @@ module.exports = {
     }
   },
 
-  getPosts: async function getPostsResolver() {
+  getPosts: async function getPostsResolver({ page }) {
     const posts = await Post.find().populate({
       path: 'creator',
     });
     return posts;
   },
+
+  getPostsCount: async function getPostsCountResolver() {
+    const count = await Post.countDocuments();
+    return count;
+  },
+
+  createPost: async function createPostResolver({ postInput }, ctx) {
+    const creator = await ensureAuth(ctx);
+    const { title, content, imageUrl } = postInput;
+    const errors = [];
+    if (validator.isEmpty(title) || !validator.isLength(title, { min: 5, max: 255 })) {
+      errors.push({ field: 'title', message: 'Title is invalid' });
+    }
+    if (validator.isEmpty(content) || !validator.isLength(content, { min: 5, max: 400 })) {
+      errors.push({ field: 'content', message: 'Content is invalid' });
+    }
+
+    const post = new Post({
+      title,
+      content,
+      imageUrl,
+      creator,
+    });
+    const savedPost = await post.save();
+    creator.posts.push(savedPost);
+    await creator.save();
+    return {
+      ...savedPost._doc,
+      _id: savedPost._id.toString(),
+      createdAt: savedPost.createdAt.toISOString(),
+      updatedAt: savedPost.updatedAt.toISOString(),
+    };
+  },
 };
+
+async function ensureAuth(ctx) {
+  if (!ctx.isAuth || !ctx.userId) {
+    const error = new Error('Not Authenticated');
+    error.statusCode = 401;
+    throw error;
+  }
+  const user = await User.findById(ctx.userId);
+  if (!user) {
+    const error = new Error('Invalid User');
+    error.statusCode = 401;
+    throw error;
+  }
+  return user;
+}

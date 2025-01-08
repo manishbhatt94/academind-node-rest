@@ -8,7 +8,8 @@ import Paginator from "../../components/Paginator/Paginator";
 import Loader from "../../components/Loader/Loader";
 import ErrorHandler from "../../components/ErrorHandler/ErrorHandler";
 import { ENDPOINT } from "@/util/api-endpoints";
-import { makeRequest } from "@/util/api-request";
+import { GQL_OPS } from "@/util/graphql-operations";
+import { makeGqlRequest, makeRequest } from "@/util/api-request";
 import "./Feed.css";
 
 class Feed extends Component {
@@ -52,9 +53,11 @@ class Feed extends Component {
       page--;
       this.setState({ postPage: page });
     }
-    makeRequest(ENDPOINT.FEED.GET_POSTS, {
-      query: { page },
-    })
+    makeGqlRequest(
+      GQL_OPS.FEED.GET_POSTS.getOperation({
+        page,
+      }),
+    )
       .then((res) => {
         if (res.status !== 200) {
           throw new Error("Failed to fetch posts.");
@@ -62,12 +65,13 @@ class Feed extends Component {
         return res.json();
       })
       .then((resData) => {
+        const { posts, totalItems } = resData.data;
         this.setState({
-          posts: resData.posts.map((post) => ({
+          posts: posts.map((post) => ({
             ...post,
             imagePath: post.imageUrl,
           })),
-          totalPosts: resData.totalItems,
+          totalPosts: totalItems,
           postsLoading: false,
         });
       })
@@ -120,15 +124,18 @@ class Feed extends Component {
     formData.append("title", postData.title);
     formData.append("content", postData.content);
     formData.append("image", postData.image);
-    let endpoint = ENDPOINT.FEED.CREATE_POST;
+    let gqlOperation;
     if (this.state.editPost) {
-      endpoint = ENDPOINT.FEED.EDIT_POST;
+      gqlOperation = GQL_OPS.FEED.EDIT_POST.getOperation({});
+    } else {
+      gqlOperation = GQL_OPS.FEED.CREATE_POST.getOperation({
+        title: postData.title,
+        content: postData.content,
+        imageUrl: "images/",
+      });
     }
 
-    makeRequest(endpoint, {
-      params: this.state.editPost ? [this.state.editPost._id] : [],
-      formData,
-    })
+    makeGqlRequest(gqlOperation)
       .then((res) => {
         if (res.status !== 200 && res.status !== 201) {
           throw new Error("Creating or editing a post failed!");
@@ -136,12 +143,18 @@ class Feed extends Component {
         return res.json();
       })
       .then((resData) => {
+        if (resData.errors?.[0]?.status === 422) {
+          throw new Error("Validation failed.");
+        }
+        if (resData.errors) {
+          throw new Error("Create / Edit post failed.");
+        }
         const post = {
-          _id: resData.post._id,
-          title: resData.post.title,
-          content: resData.post.content,
-          creator: resData.post.creator,
-          createdAt: resData.post.createdAt,
+          _id: resData.data.post._id,
+          title: resData.data.post.title,
+          content: resData.data.post.content,
+          creator: resData.data.post.creator,
+          createdAt: resData.data.post.createdAt,
         };
         this.setState((prevState) => {
           let updatedPosts = [...prevState.posts];

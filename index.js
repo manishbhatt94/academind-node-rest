@@ -6,6 +6,7 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const { createHandler } = require('graphql-http/lib/use/express');
 
+const { getUserFromHeaders } = require('./middlewares/auth');
 const graphqlSchema = require('./graphql/schema');
 const graphqlResolvers = require('./graphql/resolvers');
 
@@ -30,6 +31,13 @@ app.all(
   createHandler({
     schema: graphqlSchema,
     rootValue: graphqlResolvers,
+    context: async function getContext(req) {
+      const authInfo = getUserFromHeaders(req);
+      const ctx = {
+        ...authInfo,
+      };
+      return ctx;
+    },
     formatError(err) {
       if (!err.originalError) {
         return err;
