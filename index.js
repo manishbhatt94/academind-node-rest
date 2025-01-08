@@ -4,9 +4,10 @@ require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
+const { createHandler } = require('graphql-http/lib/use/express');
 
-const authRoutes = require('./routes/auth');
-const feedRoutes = require('./routes/feed');
+const graphqlSchema = require('./graphql/schema');
+const graphqlResolvers = require('./graphql/resolvers');
 
 const app = express();
 
@@ -18,11 +19,27 @@ app.use(function setCorsHeaders(req, res, next) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
   next();
 });
 
-app.use('/auth', authRoutes);
-app.use('/feed', feedRoutes);
+app.all(
+  '/graphql',
+  createHandler({
+    schema: graphqlSchema,
+    rootValue: graphqlResolvers,
+    formatError(err) {
+      if (!err.originalError) {
+        return err;
+      }
+      const { data, statusCode = 500 } = err.originalError;
+      const { message = 'An error occurred.' } = err;
+      return { message, data, statusCode };
+    },
+  })
+);
 
 app.use((err, req, res, next) => {
   console.error(err);
