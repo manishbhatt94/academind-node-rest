@@ -11,8 +11,8 @@ import FeedPage from "./pages/Feed/Feed";
 import SinglePostPage from "./pages/Feed/SinglePost/SinglePost";
 import LoginPage from "./pages/Auth/Login";
 import SignupPage from "./pages/Auth/Signup";
-import { ENDPOINT } from "@/util/api-endpoints";
-import { makeRequest } from "@/util/api-request";
+import { GQL_OPS } from "@/util/graphql-operations";
+import { makeGqlRequest } from "@/util/api-request";
 import "./App.css";
 
 class App extends Component {
@@ -62,13 +62,8 @@ class App extends Component {
     event.preventDefault();
     this.setState({ authLoading: true });
     const { email, password } = authData;
-    makeRequest(ENDPOINT.AUTH.LOGIN, {
-      body: { email, password },
-    })
+    makeGqlRequest(GQL_OPS.AUTH.LOGIN.getOperation({ email, password }))
       .then((res) => {
-        if (res.status === 422) {
-          throw new Error("Validation failed.");
-        }
         if (res.status !== 200 && res.status !== 201) {
           console.log("Error!");
           throw new Error("Could not authenticate you!");
@@ -77,12 +72,18 @@ class App extends Component {
       })
       .then((resData) => {
         console.log(resData);
-        this.postLogin(resData);
+        if (resData.errors?.[0]?.status === 422) {
+          throw new Error("Validation failed.");
+        }
+        if (resData.errors) {
+          throw new Error("User login failed.");
+        }
+        this.postLogin(resData.data.login);
         this.setState({
           isAuth: true,
-          token: resData.token,
+          token: resData.data.login.token,
           authLoading: false,
-          userId: resData.userId,
+          userId: resData.data.login.userId,
         });
       })
       .catch((err) => {
@@ -110,19 +111,14 @@ class App extends Component {
     const {
       signupForm: { email, password, name },
     } = authData;
-    makeRequest(ENDPOINT.AUTH.SIGNUP, {
-      body: {
+    makeGqlRequest(
+      GQL_OPS.AUTH.SIGNUP.getOperation({
         email: email.value,
         password: password.value,
         name: name.value,
-      },
-    })
+      }),
+    )
       .then((res) => {
-        if (res.status === 422) {
-          throw new Error(
-            "Validation failed. Make sure the email address isn't used yet!",
-          );
-        }
         if (res.status !== 200 && res.status !== 201) {
           console.log("Error!");
           throw new Error("Creating a user failed!");
@@ -131,6 +127,14 @@ class App extends Component {
       })
       .then((resData) => {
         console.log(resData);
+        if (resData.errors?.[0]?.status === 422) {
+          throw new Error(
+            "Validation failed. Make sure the email address isn't used yet!",
+          );
+        }
+        if (resData.errors) {
+          throw new Error("User creation failed.");
+        }
         this.setState({ isAuth: false, authLoading: false });
         this.props.history.replace("/");
       })
