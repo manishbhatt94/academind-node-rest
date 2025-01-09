@@ -68,10 +68,17 @@ module.exports = {
     }
   },
 
-  getPosts: async function getPostsResolver({ page }) {
-    const posts = await Post.find().sort({ createdAt: -1 }).populate({
-      path: 'creator',
-    });
+  getPosts: async function getPostsResolver({ page }, ctx) {
+    await ensureAuth(ctx);
+    const PER_PAGE = 3;
+    page = page || 1;
+    const posts = await Post.find()
+      .skip((page - 1) * PER_PAGE)
+      .limit(PER_PAGE)
+      .sort({ createdAt: -1 })
+      .populate({
+        path: 'creator',
+      });
     const mappedPosts = posts.map((p) => ({
       ...p._doc,
       _id: p._id.toString(),

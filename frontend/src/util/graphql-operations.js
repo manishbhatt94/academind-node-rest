@@ -43,8 +43,8 @@ GQL_OPS.AUTH.LOGIN.getOperation = ({ email, password }) => {
 
 GQL_OPS.FEED.GET_POSTS.getOperation = ({ page }) => {
   const query = `
-  query GetPostsQuery {
-    posts: getPosts {
+  query GetPostsQuery($input: Int) {
+    posts: getPosts(page: $input) {
       _id
       title
       content
@@ -58,7 +58,7 @@ GQL_OPS.FEED.GET_POSTS.getOperation = ({ page }) => {
   `;
   return {
     query,
-    variables: { page },
+    variables: { input: page },
   };
 };
 
