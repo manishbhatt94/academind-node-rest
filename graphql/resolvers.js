@@ -69,10 +69,16 @@ module.exports = {
   },
 
   getPosts: async function getPostsResolver({ page }) {
-    const posts = await Post.find().populate({
+    const posts = await Post.find().sort({ createdAt: -1 }).populate({
       path: 'creator',
     });
-    return posts;
+    const mappedPosts = posts.map((p) => ({
+      ...p._doc,
+      _id: p._id.toString(),
+      createdAt: p.createdAt.toISOString(),
+      updatedAt: p.updatedAt.toISOString(),
+    }));
+    return mappedPosts;
   },
 
   getPostsCount: async function getPostsCountResolver() {
