@@ -5,6 +5,7 @@ export const GQL_OPS = {
   },
   FEED: {
     GET_POSTS: {},
+    GET_POST_DETAILS: {},
     CREATE_POST: {},
     EDIT_POST: {},
   },
@@ -58,6 +59,27 @@ GQL_OPS.FEED.GET_POSTS.getOperation = ({ page }) => {
   return {
     query,
     variables: { page },
+  };
+};
+
+GQL_OPS.FEED.GET_POST_DETAILS.getOperation = ({ postId }) => {
+  const query = `
+  query GetPostDetailsQuery($input: String!) {
+    post: getPostDetails(postId: $input) {
+      _id
+      title
+      content
+      imageUrl
+      createdAt
+      creator {
+        name
+      }
+    }
+  }
+  `;
+  return {
+    query,
+    variables: { input: postId },
   };
 };
 

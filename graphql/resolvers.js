@@ -86,6 +86,23 @@ module.exports = {
     return count;
   },
 
+  getPostDetails: async function getPostDetailsResolver({ postId }) {
+    const post = await Post.findById(postId).populate({
+      path: 'creator',
+    });
+    if (!post) {
+      const error = new Error('Post not found');
+      error.statusCode = 404;
+      throw error;
+    }
+    return {
+      ...post._doc,
+      _id: post._id.toString(),
+      createdAt: post.createdAt.toISOString(),
+      updatedAt: post.updatedAt.toISOString(),
+    };
+  },
+
   createPost: async function createPostResolver({ postInput }, ctx) {
     const creator = await ensureAuth(ctx);
     const { title, content, imageUrl } = postInput;

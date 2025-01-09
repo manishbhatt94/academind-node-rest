@@ -1,8 +1,9 @@
 import { Component } from "react";
 
 import Image from "@/components/Image/Image";
-import { ENDPOINT, imageBaseUrl } from "@/util/api-endpoints";
-import { makeRequest } from "@/util/api-request";
+import { imageBaseUrl } from "@/util/api-endpoints";
+import { GQL_OPS } from "@/util/graphql-operations";
+import { makeGqlRequest } from "@/util/api-request";
 import "./SinglePost.css";
 
 class SinglePost extends Component {
@@ -16,9 +17,7 @@ class SinglePost extends Component {
 
   componentDidMount() {
     const postId = this.props.match.params.postId;
-    makeRequest(ENDPOINT.FEED.GET_POST_DETAILS, {
-      params: [postId],
-    })
+    makeGqlRequest(GQL_OPS.FEED.GET_POST_DETAILS.getOperation({ postId }))
       .then((res) => {
         if (res.status !== 200) {
           throw new Error("Failed to fetch status");
@@ -27,11 +26,13 @@ class SinglePost extends Component {
       })
       .then((resData) => {
         this.setState({
-          title: resData.post.title,
-          author: resData.post.creator.name,
-          date: new Date(resData.post.createdAt).toLocaleDateString("en-US"),
-          content: resData.post.content,
-          image: imageBaseUrl + "/" + resData.post.imageUrl,
+          title: resData.data.post.title,
+          author: resData.data.post.creator.name,
+          date: new Date(resData.data.post.createdAt).toLocaleDateString(
+            "en-US",
+          ),
+          content: resData.data.post.content,
+          image: imageBaseUrl + "/" + resData.data.post.imageUrl,
         });
       })
       .catch((err) => {
