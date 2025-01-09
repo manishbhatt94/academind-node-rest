@@ -90,6 +90,12 @@ module.exports = {
     if (validator.isEmpty(content) || !validator.isLength(content, { min: 5, max: 400 })) {
       errors.push({ field: 'content', message: 'Content is invalid' });
     }
+    if (errors.length) {
+      const error = new Error('Invalid input.');
+      error.data = errors;
+      error.statusCode = 422;
+      throw error;
+    }
 
     const post = new Post({
       title,
