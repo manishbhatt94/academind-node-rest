@@ -81,12 +81,14 @@ module.exports = {
     return mappedPosts;
   },
 
-  getPostsCount: async function getPostsCountResolver() {
+  getPostsCount: async function getPostsCountResolver({}, ctx) {
+    await ensureAuth(ctx);
     const count = await Post.countDocuments();
     return count;
   },
 
-  getPostDetails: async function getPostDetailsResolver({ postId }) {
+  getPostDetails: async function getPostDetailsResolver({ postId }, ctx) {
+    await ensureAuth(ctx);
     const post = await Post.findById(postId).populate({
       path: 'creator',
     });
@@ -104,7 +106,7 @@ module.exports = {
   },
 
   createPost: async function createPostResolver({ postInput }, ctx) {
-    const creator = await ensureAuth(ctx);
+    const creator = await ensureAuth(ctx, { includeUser: true });
     const { title, content, imageUrl } = postInput;
     const errors = [];
     if (validator.isEmpty(title) || !validator.isLength(title, { min: 5, max: 255 })) {
@@ -138,11 +140,14 @@ module.exports = {
   },
 };
 
-async function ensureAuth(ctx) {
+async function ensureAuth(ctx, { includeUser = false } = {}) {
   if (!ctx.isAuth || !ctx.userId) {
     const error = new Error('Not Authenticated');
     error.statusCode = 401;
     throw error;
+  }
+  if (!includeUser) {
+    return;
   }
   const user = await User.findById(ctx.userId);
   if (!user) {
